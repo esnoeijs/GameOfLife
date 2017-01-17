@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"os/exec"
+	"os"
 	"time"
 )
 
@@ -11,10 +13,15 @@ type cell struct {
 	connections [8]*cell
 }
 
-const xCells = 20;
+const xCells = 10
 
-const yCells = 20;
+const yCells = 20
 
+func CallClear() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
+}
 
 func main() {
 	rand.Seed(125)
@@ -23,98 +30,39 @@ func main() {
 
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
-			if rand.Intn(2) == 1 {
-				board[x][y] = cell{alive:true}
-			} else {
-				board[x][y] = cell{alive:false}
+			board[x][y] = cell{alive:rand.Intn(2) == 1}
+
+			var wrapCoordinate = func(x int, max int) int {
+				if x < 0 {
+					return max
+				} else if x > max {
+					return 0
+				} else {
+					return x
+				}
 			}
+
+			xp := wrapCoordinate(x-1, xCells-1)
+			xn := wrapCoordinate(x+1, xCells-1)
+			yp := wrapCoordinate(y-1, yCells-1)
+			yn := wrapCoordinate(y+1, yCells-1)
+
+			board[x][y].connections[0] = &board[x][yp]
+			board[x][y].connections[1] = &board[xn][yp]
+			board[x][y].connections[2] = &board[xn][y]
+			board[x][y].connections[3] = &board[xn][yn]
+			board[x][y].connections[4] = &board[x][yn]
+			board[x][y].connections[5] = &board[xp][yn]
+			board[x][y].connections[6] = &board[xp][y]
+			board[x][y].connections[7] = &board[xp][yp]
 		}
 	}
-	for x := 0; x < xCells; x++ {
-		for y := 0; y < yCells; y++ {
-
-			xp := x - 1
-			if xp < 0 {
-				xp = xCells - 1
-			};
-			xn := x + 1
-			if xn > xCells-1 {
-				xn = 0;
-			}
-
-			yp := y - 1
-			if yp < 0 {
-				yp = yCells - 1
-			}
-			yn := y + 1
-			if yn > yCells-1 {
-				yn = 0;
-			}
-
-			board[x][y].connections[0] = &board[x][yp];
-			board[x][y].connections[1] = &board[xn][yp];
-			board[x][y].connections[2] = &board[xn][y];
-			board[x][y].connections[3] = &board[xn][yn];
-			board[x][y].connections[4] = &board[x][yn];
-			board[x][y].connections[5] = &board[xp][yn];
-			board[x][y].connections[6] = &board[xp][y];
-			board[x][y].connections[7] = &board[xp][yp];
-		}
-	}
-
-	printBoard(board)
 
 	for {
-
 		time.Sleep(100 * time.Millisecond)
 		printBoard(board)
 		board = updateBoard(board)
 	}
-
-}
-
-func buildBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
-	for x := 0; x < xCells; x++ {
-		for y := 0; y < yCells; y++ {
-			if rand.Intn(2) == 1 {
-				board[x][y] = cell{alive:true}
-			} else {
-				board[x][y] = cell{alive:false}
-			}
-		}
-	}
-	for x := 0; x < xCells; x++ {
-		for y := 0; y < yCells; y++ {
-
-			xp := x - 1
-			if xp < 0 {
-				xp = xCells - 1
-			};
-			xn := x + 1
-			if xn > xCells-1 {
-				xn = 0;
-			}
-
-			yp := y - 1
-			if yp < 0 {
-				yp = yCells - 1
-			}
-			yn := y + 1
-			if yn > yCells-1 {
-				yn = 0;
-			}
-
-			board[x][y].connections[0] = &board[x][yp];
-			board[x][y].connections[1] = &board[xn][yp];
-			board[x][y].connections[2] = &board[xn][y];
-			board[x][y].connections[3] = &board[xn][yn];
-			board[x][y].connections[4] = &board[x][yn];
-			board[x][y].connections[5] = &board[xp][yn];
-			board[x][y].connections[6] = &board[xp][y];
-			board[x][y].connections[7] = &board[xp][yp];
-		}
-	}
-	return board
 }
 
 func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
@@ -129,9 +77,7 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 				}
 			}
 
-			if aliveScore < 2 {
-				tmpBoard[x][y].alive = false
-			} else if aliveScore > 3 {
+			if aliveScore < 2 || aliveScore > 3 {
 				tmpBoard[x][y].alive = false
 			} else if aliveScore == 3 {
 				tmpBoard[x][y].alive = true
@@ -151,6 +97,8 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 }
 
 func printBoard(board [xCells][yCells]cell) {
+	CallClear()
+
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
 			if board[x][y].alive {
