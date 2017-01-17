@@ -47,14 +47,20 @@ func main() {
 			yp := wrapCoordinate(y-1, yCells-1)
 			yn := wrapCoordinate(y+1, yCells-1)
 
-			board[x][y].connections[0] = &board[x][yp]
-			board[x][y].connections[1] = &board[xn][yp]
-			board[x][y].connections[2] = &board[xn][y]
-			board[x][y].connections[3] = &board[xn][yn]
-			board[x][y].connections[4] = &board[x][yn]
-			board[x][y].connections[5] = &board[xp][yn]
-			board[x][y].connections[6] = &board[xp][y]
-			board[x][y].connections[7] = &board[xp][yp]
+			var xyMap = [8][2]int{
+				{xp, yp}, // NW
+				{xp, y},  // N
+				{xp, yn}, // NE
+				{x, yp},  // W
+				{x, yn},  // E
+				{xn, yp}, // SW
+				{xn, y},  // S
+				{xn, yn}, // SE
+			}
+
+			for key, xy := range xyMap {
+				board[x][y].connections[key] = &board[xy[0]][xy[1]]
+			}
 		}
 	}
 
@@ -66,7 +72,7 @@ func main() {
 }
 
 func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
-	tmpBoard := [xCells][yCells]cell{}
+	aliveState := [xCells][yCells]bool{}
 
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
@@ -78,18 +84,18 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 			}
 
 			if aliveScore < 2 || aliveScore > 3 {
-				tmpBoard[x][y].alive = false
+				aliveState[x][y] = false
 			} else if aliveScore == 3 {
-				tmpBoard[x][y].alive = true
+				aliveState[x][y] = true
 			} else {
-				tmpBoard[x][y].alive = board[x][y].alive
+				aliveState[x][y] = board[x][y].alive
 			}
 		}
 	}
 
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
-			board[x][y].alive = tmpBoard[x][y].alive
+			board[x][y].alive = aliveState[x][y]
 		}
 	}
 
