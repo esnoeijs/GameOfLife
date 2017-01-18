@@ -6,29 +6,40 @@ import (
 	"os/exec"
 	"os"
 	"time"
+	"runtime"
 )
 
 type cell struct {
-	id int
+	id          int
 	alive       bool
 	connections [8]*cell
-	x int
-	y int
+	x           int
+	y           int
 }
+const speedMiliseconds = 250
+const xCells = 25
 
-const xCells = 5
-
-const yCells = 5
+const yCells = 50
 
 var liveList = []*cell{};
 
 func CallClear() {
-	cmd := exec.Command("clear")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	clear := make(map[string]string)
+	clear["linux"] = "clear"
+	clear["darwin"] = "clear"
+	clear["windows"] = "clr"
+
+	value, ok := clear[runtime.GOOS]
+	if ok {
+		cmd := exec.Command(value)
+		cmd.Stdout = os.Stdout
+		cmd.Run()
+	} else {
+		panic("Your platform is unsupported! I can't clear terminal screen :(")
+	}
 }
 
-func isSetAlready (id int, list []*cell) bool {
+func isSetAlready(id int, list []*cell) bool {
 	for _, cell := range list {
 		if (cell.id == id) {
 			return true
@@ -52,8 +63,7 @@ func main() {
 		}
 	}
 
-
-	var inList = func (x int, list []int) bool {
+	var inList = func(x int, list []int) bool {
 		for _, i := range list {
 			if i == x {
 				return true;
@@ -62,17 +72,18 @@ func main() {
 
 		return false;
 	}
+	inList(1,[]int{0})
+
 	var id = 0
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
 			id += 1
-			ints := []int{2, 8, 11, 12, 13}
 			board[x][y] = cell{
 				id: id,
-				//alive:rand.Intn(2) == 1,
-				alive: inList(id, ints),
-				x: x,
-				y: y,
+				alive:rand.Intn(2) == 1,
+				//alive: inList(id, []int{2, xCells + 3, (xCells * 2) + 1, (xCells * 2) + 2, (xCells * 2) + 3}),
+				x:     x,
+				y:     y,
 			}
 
 			xp := wrapCoordinate(x-1, xCells-1)
@@ -95,7 +106,6 @@ func main() {
 				board[x][y].connections[key] = &board[xy[0]][xy[1]]
 			}
 
-
 		}
 	}
 
@@ -103,7 +113,7 @@ func main() {
 		for y := 0; y < yCells; y++ {
 			if (board[x][y].alive) {
 				liveList = append(liveList, &board[x][y])
-				for _,c := range board[x][y].connections {
+				for _, c := range board[x][y].connections {
 					if (false == isSetAlready(c.id, liveList)) {
 						liveList = append(liveList, c)
 					}
@@ -113,13 +123,10 @@ func main() {
 	}
 
 
-	var i = 0;
-	for i < 1000 {
-		i += 1
+	for range time.Tick(speedMiliseconds * time.Millisecond) {
+			board = updateBoard(board)
+			printBoard(board)
 
-		printBoard(board)
-		board = updateBoard(board)
-		time.Sleep(100 * time.Millisecond)
 	}
 }
 
@@ -150,14 +157,13 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 				if (false == isSetAlready(board[x][y].id, liveList)) {
 					liveList = append(liveList, &board[x][y])
 				}
-				for _,c := range board[x][y].connections {
+				for _, c := range board[x][y].connections {
 					if (false == isSetAlready(c.id, liveList)) {
 						liveList = append(liveList, c)
 					}
 				}
 				board[x][y].alive = true
 			} else {
-				liveList = append(liveList, &board[x][y])
 				board[x][y].alive = false
 			}
 		}
@@ -184,8 +190,8 @@ func printBoard(board [xCells][yCells]cell) {
 	fmt.Print("\n")
 	fmt.Printf("liveList: %d\n", len(liveList))
 
-	for _, x := range liveList {
-		fmt.Printf("%d, ", x.id)
-	}
+	//for _, x := range liveList {
+	//	fmt.Printf("%d, ", x.id)
+	//}
 	fmt.Println("\n");
 }
