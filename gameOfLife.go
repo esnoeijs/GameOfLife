@@ -16,9 +16,9 @@ type cell struct {
 	y int
 }
 
-const xCells = 10
+const xCells = 5
 
-const yCells = 150
+const yCells = 5
 
 var liveList = []*cell{};
 
@@ -28,8 +28,18 @@ func CallClear() {
 	cmd.Run()
 }
 
+func isSetAlready (id int, list []*cell) bool {
+	for _, cell := range list {
+		if (cell.id == id) {
+			return true
+		}
+	}
+
+	return false
+}
+
 func main() {
-	rand.Seed(125)
+	rand.Seed(126)
 	board := [xCells][yCells]cell{}
 
 	var wrapCoordinate = func(x int, max int) int {
@@ -42,13 +52,25 @@ func main() {
 		}
 	}
 
+
+	var inList = func (x int, list []int) bool {
+		for _, i := range list {
+			if i == x {
+				return true;
+			}
+		}
+
+		return false;
+	}
 	var id = 0
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
 			id += 1
+			ints := []int{2, 8, 11, 12, 13}
 			board[x][y] = cell{
 				id: id,
-				alive:rand.Intn(2) == 1,
+				//alive:rand.Intn(2) == 1,
+				alive: inList(id, ints),
 				x: x,
 				y: y,
 			}
@@ -75,6 +97,11 @@ func main() {
 
 			if (board[x][y].alive) {
 				liveList = append(liveList, &board[x][y])
+				for _,c := range board[x][y].connections {
+					if (false == isSetAlready(c.id, liveList)) {
+						liveList = append(liveList, c)
+					}
+				}
 
 			}
 		}
@@ -87,22 +114,14 @@ func main() {
 
 		printBoard(board)
 		board = updateBoard(board)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
 
 func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 	aliveState := [xCells][yCells]bool{}
 
-	var isSetAlready = func (id int, list []*cell) bool {
-		for _, cell := range list {
-			if (cell.id == id) {
-				return true
-			}
-		}
 
-		return false
-	}
 
 	for _, cell := range liveList {
 		aliveScore := 0
@@ -120,7 +139,7 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 			aliveState[cell.x][cell.y] = cell.alive
 		}
 	}
-
+	//
 	//for x := 0; x < xCells; x++ {
 	//	for y := 0; y < yCells; y++ {
 	//		aliveScore := 0
@@ -179,4 +198,9 @@ func printBoard(board [xCells][yCells]cell) {
 	}
 	fmt.Print("\n")
 	fmt.Printf("liveList: %d\n", len(liveList))
+
+	for _, x := range liveList {
+		fmt.Printf("%d, ", x.id)
+	}
+	fmt.Println("\n");
 }
