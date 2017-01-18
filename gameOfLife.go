@@ -95,6 +95,12 @@ func main() {
 				board[x][y].connections[key] = &board[xy[0]][xy[1]]
 			}
 
+
+		}
+	}
+
+	for x := 0; x < xCells; x++ {
+		for y := 0; y < yCells; y++ {
 			if (board[x][y].alive) {
 				liveList = append(liveList, &board[x][y])
 				for _,c := range board[x][y].connections {
@@ -102,7 +108,6 @@ func main() {
 						liveList = append(liveList, c)
 					}
 				}
-
 			}
 		}
 	}
@@ -114,14 +119,12 @@ func main() {
 
 		printBoard(board)
 		board = updateBoard(board)
-		time.Sleep(1000 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
 func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 	aliveState := [xCells][yCells]bool{}
-
-
 
 	for _, cell := range liveList {
 		aliveScore := 0
@@ -139,25 +142,6 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 			aliveState[cell.x][cell.y] = cell.alive
 		}
 	}
-	//
-	//for x := 0; x < xCells; x++ {
-	//	for y := 0; y < yCells; y++ {
-	//		aliveScore := 0
-	//		for n := 0; n < 8; n++ {
-	//			if board[x][y].connections[n].alive {
-	//				aliveScore += 1
-	//			}
-	//		}
-	//
-	//		if aliveScore < 2 || aliveScore > 3 {
-	//			aliveState[x][y] = false
-	//		} else if aliveScore == 3 {
-	//			aliveState[x][y] = true
-	//		} else {
-	//			aliveState[x][y] = board[x][y].alive
-	//		}
-	//	}
-	//}
 
 	liveList = []*cell{}
 	for x := 0; x < xCells; x++ {
@@ -173,6 +157,7 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 				}
 				board[x][y].alive = true
 			} else {
+				liveList = append(liveList, &board[x][y])
 				board[x][y].alive = false
 			}
 		}
