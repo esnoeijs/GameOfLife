@@ -16,10 +16,10 @@ type cell struct {
 	x           int
 	y           int
 }
-const speedMiliseconds = 250
-const xCells = 25
+const speedMiliseconds = 100
+const xCells = 100
 
-const yCells = 50
+const yCells = 100
 
 var liveList = []*cell{};
 
@@ -37,16 +37,6 @@ func CallClear() {
 	} else {
 		panic("Your platform is unsupported! I can't clear terminal screen :(")
 	}
-}
-
-func isSetAlready(id int, list []*cell) bool {
-	for _, cell := range list {
-		if (cell.id == id) {
-			return true
-		}
-	}
-
-	return false
 }
 
 func main() {
@@ -112,12 +102,7 @@ func main() {
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
 			if (board[x][y].alive) {
-				liveList = append(liveList, &board[x][y])
-				for _, c := range board[x][y].connections {
-					if (false == isSetAlready(c.id, liveList)) {
-						liveList = append(liveList, c)
-					}
-				}
+				addToLiveList(board[x][y])
 			}
 		}
 	}
@@ -154,14 +139,7 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 	for x := 0; x < xCells; x++ {
 		for y := 0; y < yCells; y++ {
 			if aliveState[x][y] {
-				if (false == isSetAlready(board[x][y].id, liveList)) {
-					liveList = append(liveList, &board[x][y])
-				}
-				for _, c := range board[x][y].connections {
-					if (false == isSetAlready(c.id, liveList)) {
-						liveList = append(liveList, c)
-					}
-				}
+				addToLiveList(board[x][y])
 				board[x][y].alive = true
 			} else {
 				board[x][y].alive = false
@@ -170,6 +148,28 @@ func updateBoard(board [xCells][yCells]cell) [xCells][yCells]cell {
 	}
 
 	return board
+}
+
+func isSetAlready(id int, list []*cell) bool {
+	for _, cell := range list {
+		if (cell.id == id) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func addToLiveList(cell cell) {
+
+	if (false == isSetAlready(cell.id, liveList)) {
+		liveList = append(liveList, &cell)
+	}
+	for _, c := range cell.connections {
+		if (false == isSetAlready(c.id, liveList)) {
+			liveList = append(liveList, c)
+		}
+	}
 }
 
 func printBoard(board [xCells][yCells]cell) {
